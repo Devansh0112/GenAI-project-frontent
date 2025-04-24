@@ -13,13 +13,14 @@ import {
   Stack,
   Heading,
   Container,
+  Text,
 } from '@chakra-ui/react';
 import { 
   HamburgerIcon, 
   CloseIcon, 
   MoonIcon, 
   SunIcon,
-  EditIcon,
+  StarIcon,
   ViewIcon,
 } from '@chakra-ui/icons';
 
@@ -27,25 +28,29 @@ const NavLink = ({ children, to, icon }) => {
   const location = useLocation();
   const isActive = location.pathname === to;
   
-  const activeColor = useColorModeValue('brand.600', 'brand.300');
-  const inactiveColor = useColorModeValue('gray.600', 'gray.300');
-  const activeBg = useColorModeValue('brand.50', 'gray.700');
-  
   return (
     <Link
       as={RouterLink}
-      px={3}
+      px={4}
       py={2}
-      rounded={'md'}
+      rounded="full"
       display="flex"
       alignItems="center"
-      fontWeight={isActive ? "semibold" : "medium"}
-      color={isActive ? activeColor : inactiveColor}
-      bg={isActive ? activeBg : 'transparent'}
+      fontWeight={isActive ? "bold" : "medium"}
+      color={isActive ? "white" : "gray.600"}
+      bg={isActive ? "purple.500" : "transparent"}
       _hover={{
         textDecoration: 'none',
-        bg: useColorModeValue('gray.100', 'gray.700'),
-        color: useColorModeValue('brand.600', 'brand.300'),
+        bg: isActive ? "purple.600" : "purple.50",
+        color: isActive ? "white" : "purple.600",
+      }}
+      _dark={{
+        color: isActive ? "white" : "gray.300",
+        bg: isActive ? "purple.500" : "transparent",
+        _hover: {
+          bg: isActive ? "purple.600" : "gray.700",
+          color: isActive ? "white" : "purple.300",
+        }
       }}
       transition="all 0.2s"
       to={to}
@@ -62,48 +67,51 @@ const NavBar = () => {
 
   return (
     <Box 
-      bg={useColorModeValue('white', 'gray.900')} 
+      bg="white"
+      _dark={{ bg: "gray.800" }}
       boxShadow="sm"
       position="sticky"
       top="0"
       zIndex="sticky"
     >
-      <Container maxW="container.xl">
-        <Flex h={16} alignItems={'center'} justifyContent={'space-between'}>
+      <Container maxW="container.lg">
+        <Flex h={16} alignItems="center" justifyContent="space-between">
           <IconButton
-            size={'md'}
+            size="md"
             icon={isOpen ? <CloseIcon /> : <HamburgerIcon />}
-            aria-label={'Open Menu'}
+            aria-label="Open Menu"
             display={{ md: 'none' }}
             onClick={isOpen ? onClose : onOpen}
+            variant="ghost"
+            colorScheme="purple"
           />
           
-          <HStack spacing={8} alignItems={'center'}>
+          <HStack spacing={8} alignItems="center">
             <Heading
               size="md"
-              bgGradient="linear(to-r, brand.500, accent.500)"
+              bgGradient="linear(to-r, purple.600, blue.500)"
+              _dark={{ bgGradient: "linear(to-r, purple.300, blue.200)" }}
               bgClip="text"
               fontWeight="extrabold"
               letterSpacing="tight"
             >
-              Text2Image AI
+              Dream2Reality
             </Heading>
             
-            <HStack as={'nav'} spacing={4} display={{ base: 'none', md: 'flex' }}>
-              <NavLink to="/" icon={<EditIcon />}>Create</NavLink>
+            <HStack as="nav" spacing={4} display={{ base: 'none', md: 'flex' }}>
+              <NavLink to="/" icon={<StarIcon />}>Create</NavLink>
               <NavLink to="/gallery" icon={<ViewIcon />}>Gallery</NavLink>
-              {/* <NavLink to="/retrain" icon={<RepeatIcon />}>Retrain Model</NavLink> */}
             </HStack>
           </HStack>
           
-          <Flex alignItems={'center'}>
+          <Flex alignItems="center">
             <Button 
               onClick={toggleColorMode} 
-              mr={4}
-              size="sm"
+              size="md"
               variant="ghost"
-              colorScheme="brand"
+              colorScheme="purple"
               aria-label={colorMode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+              borderRadius="full"
             >
               {colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
             </Button>
@@ -112,10 +120,9 @@ const NavBar = () => {
 
         {isOpen ? (
           <Box pb={4} display={{ md: 'none' }}>
-            <Stack as={'nav'} spacing={4}>
-              <NavLink to="/" icon={<EditIcon />}>Create</NavLink>
+            <Stack as="nav" spacing={2} pt={2}>
+              <NavLink to="/" icon={<StarIcon />}>Create</NavLink>
               <NavLink to="/gallery" icon={<ViewIcon />}>Gallery</NavLink>
-              {/* <NavLink to="/retrain" icon={<RepeatIcon />}>Retrain Model</NavLink> */}
             </Stack>
           </Box>
         ) : null}

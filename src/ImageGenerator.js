@@ -5,49 +5,29 @@ import {
   Button,
   Container,
   FormControl,
-  FormLabel,
   Heading,
   Textarea,
   VStack,
   HStack,
   Image,
   useToast,
-  Slider,
-  SliderTrack,
-  SliderFilledTrack,
-  SliderThumb,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
-  NumberIncrementStepper,
-  NumberDecrementStepper,
   Text,
   Flex,
   Spacer,
   IconButton,
-  Tooltip,
   Badge,
   Card,
   CardBody,
-  CardHeader,
-  CardFooter,
-  Tabs,
-  TabList,
-  TabPanels,
-  Tab,
-  TabPanel,
   useColorModeValue,
   Skeleton,
+  Icon,
 } from '@chakra-ui/react';
 import { 
   DownloadIcon, 
   StarIcon, 
   InfoIcon, 
-  RepeatIcon,
-  EditIcon,
-  SettingsIcon,
   ChevronRightIcon,
-  MoonIcon
+  MoonIcon,
 } from '@chakra-ui/icons';
 import { generateImage } from './api';
 
@@ -76,7 +56,16 @@ const ImageGenerator = () => {
   // Color mode values
   const cardBg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
-  
+  const bgGradient = useColorModeValue(
+    'linear(to-br, purple.50, blue.50)',
+    'linear(to-br, gray.900, gray.800)'
+  );
+  const promptBg = useColorModeValue('white', 'gray.700');
+  const gradientText = useColorModeValue(
+    'linear(to-r, purple.600, blue.500)',
+    'linear(to-r, purple.300, blue.200)'
+  );
+
   const handleGenerateImage = async () => {
     if (!prompt.trim()) {
       toast({
@@ -89,18 +78,31 @@ const ImageGenerator = () => {
       });
       return;
     }
-
+  
     setLoading(true);
     
     try {
       const seedValue = seed ? parseInt(seed) : undefined;
       
+      // Enhanced prompt for anime/cartoon style
+      const enhancedPrompt = `${prompt}, anime style, cartoon art, detailed illustration, vibrant colors, Naruto-inspired`;
+      
+      // Additional style parameters
+      const styleParams = {
+        style_preset: "anime",
+        art_style: "cartoon",
+        quality: "hd"
+      };
+      
       const result = await generateImage({
-        prompt,
-        negative_prompt: negativePrompt,
+        // Use the enhanced prompt instead of the original
+        prompt: enhancedPrompt,
+        negative_prompt: `realistic, photorealistic, 3d render, photograph, ${negativePrompt}`,
         num_inference_steps: inferenceSteps,
         guidance_scale: guidanceScale,
         seed: seedValue,
+        // Include style parameters
+        ...styleParams
       });
       
       setGeneratedImage(result.image);
@@ -109,7 +111,7 @@ const ImageGenerator = () => {
       
       toast({
         title: 'Success!',
-        description: 'Your image has been generated successfully',
+        description: 'Your anime-style image has been generated successfully',
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -163,301 +165,193 @@ const ImageGenerator = () => {
   };
 
   return (
-    <Container maxW="container.xl" py={6}>
-      <VStack spacing={8} align="stretch">
-        <Box textAlign="center" pb={4}>
-          <Heading 
-            as="h1" 
-            size="xl" 
-            mb={3}
-            bgGradient="linear(to-r, brand.500, accent.500)"
-            bgClip="text"
-          >
-            Text to Image Generator
-          </Heading>
-          <Text color="gray.500" maxW="container.md" mx="auto">
-            Describe your imagination in words, and our AI will bring it to life.
-          </Text>
-        </Box>
-        
-        <Flex 
-          direction={{ base: 'column', lg: 'row' }} 
-          gap={8}
-          align="stretch"
-        >
-          <Box flex="1">
-            <Card 
-              bg={cardBg} 
-              borderColor={borderColor} 
-              borderWidth="1px"
-              boxShadow="sm"
-              h="100%"
+    <Box 
+      bgGradient={bgGradient}
+      minH="100vh"
+      py={8}
+      px={4}
+    >
+      <Container maxW="container.lg">
+        <VStack spacing={8} align="stretch">
+          {/* Header */}
+          <Box textAlign="center" mb={2}>
+            <Heading 
+              as="h1" 
+              size="2xl" 
+              mb={3}
+              bgGradient={gradientText}
+              bgClip="text"
+              fontWeight="extrabold"
+              letterSpacing="tight"
             >
-              <CardHeader pb={0}>
-                <Tabs colorScheme="brand" size="md" variant="line">
-                  {/* <TabList>
-                    <Tab fontWeight="medium">
-                      <EditIcon mr={2} />
-                      Creation
-                    </Tab>
-                    <Tab fontWeight="medium">
-                      <SettingsIcon mr={2} />
-                      Advanced
-                    </Tab>
-                  </TabList> */}
-                  
-                  <TabPanels>
-                    <TabPanel>
-                      <VStack spacing={5} align="stretch">
-                        <FormControl isRequired>
-                          <FormLabel fontWeight="medium">
-                            Text Prompt
-                          </FormLabel>
-                          <Textarea
-                            placeholder="Describe the image you want to generate in detail..."
-                            value={prompt}
-                            onChange={(e) => setPrompt(e.target.value)}
-                            size="lg"
-                            rows={6}
-                            borderColor={borderColor}
-                            focusBorderColor="brand.500"
-                            resize="vertical"
-                          />
-                          
-                          <Box mt={3}>
-                            <Text fontSize="sm" fontWeight="medium" mb={2}>
-                              <InfoIcon mr={1} color="accent.500" />
-                              Need inspiration? Try one of these:
-                            </Text>
-                            <Flex wrap="wrap" gap={2}>
-                              {EXAMPLE_PROMPTS.map((examplePrompt, index) => (
-                                <Badge
-                                  key={index}
-                                  px={2}
-                                  py={1}
-                                  borderRadius="full"
-                                  colorScheme="accent"
-                                  cursor="pointer"
-                                  _hover={{ opacity: 0.8 }}
-                                  onClick={() => handleUseExamplePrompt(examplePrompt)}
-                                >
-                                  {examplePrompt.slice(0, 25)}...
-                                </Badge>
-                              ))}
-                            </Flex>
-                          </Box>
-                        </FormControl>
-                        
-                        {/* <FormControl>
-                          <FormLabel fontWeight="medium">
-                            Negative Prompt
-                          </FormLabel>
-                          <Textarea
-                            placeholder="Specify elements you want to avoid in the generated image..."
-                            value={negativePrompt}
-                            onChange={(e) => setNegativePrompt(e.target.value)}
-                            size="lg"
-                            rows={3}
-                            borderColor={borderColor}
-                            focusBorderColor="brand.500"
-                          />
-                        </FormControl> */}
-                        
-                        <Button
-                          colorScheme="brand"
-                          size="lg"
-                          onClick={handleGenerateImage}
-                          isLoading={loading}
-                          loadingText="Generating..."
-                          leftIcon={<StarIcon />}
-                          mt={3}
-                          boxShadow="md"
-                          _hover={{
-                            transform: 'translateY(-2px)',
-                            boxShadow: 'lg',
-                          }}
-                          transition="all 0.2s"
-                        >
-                          Generate Image
-                        </Button>
-                      </VStack>
-                    </TabPanel>
-                    
-                    <TabPanel>
-                      <VStack spacing={5} align="stretch">
-                        <FormControl>
-                          <FormLabel fontWeight="medium">
-                            Inference Steps: {inferenceSteps}
-                            <Tooltip label="Higher values generally produce better quality images but take longer to generate">
-                              <IconButton
-                                aria-label="Info"
-                                icon={<InfoIcon />}
-                                size="xs"
-                                ml={2}
-                                variant="ghost"
-                              />
-                            </Tooltip>
-                          </FormLabel>
-                          <Slider
-                            min={20}
-                            max={100}
-                            step={1}
-                            value={inferenceSteps}
-                            onChange={setInferenceSteps}
-                            colorScheme="brand"
-                          >
-                            <SliderTrack>
-                              <SliderFilledTrack />
-                            </SliderTrack>
-                            <SliderThumb boxSize={6} boxShadow="md" />
-                          </Slider>
-                        </FormControl>
-                        
-                        <FormControl>
-                          <FormLabel fontWeight="medium">
-                            Guidance Scale: {guidanceScale}
-                            <Tooltip label="Controls how closely the image follows your prompt. Higher values = more faithful to prompt but potentially less creative">
-                              <IconButton
-                                aria-label="Info"
-                                icon={<InfoIcon />}
-                                size="xs"
-                                ml={2}
-                                variant="ghost"
-                              />
-                            </Tooltip>
-                          </FormLabel>
-                          <Slider
-                            min={1}
-                            max={20}
-                            step={0.1}
-                            value={guidanceScale}
-                            onChange={setGuidanceScale}
-                            colorScheme="brand"
-                          >
-                            <SliderTrack>
-                              <SliderFilledTrack />
-                            </SliderTrack>
-                            <SliderThumb boxSize={6} boxShadow="md" />
-                          </Slider>
-                        </FormControl>
-                        
-                        <FormControl>
-                          <FormLabel fontWeight="medium">Seed</FormLabel>
-                          <HStack>
-                            <NumberInput
-                              value={seed}
-                              onChange={(valueString) => setSeed(valueString)}
-                              min={0}
-                              max={4294967295}
-                              width="full"
-                              focusBorderColor="brand.500"
-                            >
-                              <NumberInputField 
-                                placeholder="Random seed"
-                                borderColor={borderColor}
-                              />
-                              <NumberInputStepper>
-                                <NumberIncrementStepper />
-                                <NumberDecrementStepper />
-                              </NumberInputStepper>
-                            </NumberInput>
-                            <Tooltip label="Generate random seed">
-                              <IconButton
-                                aria-label="Random seed"
-                                icon={<RepeatIcon />}
-                                onClick={handleRandomSeed}
-                                colorScheme="brand"
-                              />
-                            </Tooltip>
-                          </HStack>
-                          <Text fontSize="sm" color="gray.500" mt={1}>
-                            Use the same seed to generate similar images
-                          </Text>
-                        </FormControl>
-                      </VStack>
-                    </TabPanel>
-                  </TabPanels>
-                </Tabs>
-              </CardHeader>
-            </Card>
+              Dream to Reality
+            </Heading>
+            <Text fontSize="lg" color="gray.600" _dark={{ color: "gray.300" }} maxW="container.md" mx="auto">
+              Transform your imagination into stunning visuals with AI
+            </Text>
           </Box>
           
-          <Box flex="1">
-            <Card 
-              bg={cardBg} 
-              borderColor={borderColor} 
-              borderWidth="1px"
-              boxShadow="sm"
-              h="100%"
-              display="flex"
-              flexDirection="column"
+          {/* Prompt Input and Generate Button (Side by Side) */}
+          <Flex 
+            direction={{ base: "column", md: "row" }} 
+            gap={4}
+            align="stretch"
+          >
+            <FormControl flex="1">
+              <Textarea
+                placeholder="Describe the image you want to generate in detail..."
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                size="lg"
+                bg={promptBg}
+                borderRadius="lg"
+                borderColor={borderColor}
+                focusBorderColor="purple.400"
+                _hover={{ borderColor: 'purple.300' }}
+                resize="vertical"
+                fontSize="md"
+                p={4}
+                height="80px"
+              />
+              
+              <Flex wrap="wrap" gap={2} mt={2}>
+                {EXAMPLE_PROMPTS.map((examplePrompt, index) => (
+                  <Badge
+                    key={index}
+                    px={2}
+                    py={1}
+                    borderRadius="full"
+                    colorScheme="purple"
+                    cursor="pointer"
+                    _hover={{ bg: 'purple.100', color: 'purple.800' }}
+                    onClick={() => handleUseExamplePrompt(examplePrompt)}
+                  >
+                    {examplePrompt.slice(0, 25)}...
+                  </Badge>
+                ))}
+              </Flex>
+            </FormControl>
+            
+            <Button
+              colorScheme="purple"
+              size="lg"
+              onClick={handleGenerateImage}
+              isLoading={loading}
+              loadingText="Creating..."
+              leftIcon={<StarIcon />}
+              minW={{ base: "full", md: "150px" }}
+              h="80px"
+              borderRadius="lg"
+              fontWeight="bold"
+              boxShadow="md"
+              _hover={{
+                transform: 'translateY(-2px)',
+                boxShadow: 'lg',
+              }}
+              transition="all 0.2s"
             >
-              <CardBody flex="1" display="flex" flexDirection="column">
-                <Box
-                  borderRadius="md"
-                  overflow="hidden"
-                  bg="gray.700"
-                  h={{ base: "300px", md: "400px", lg: "512px" }}
-                  flex="1"
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
-                  position="relative"
-                >
-                  {loading ? (
-                    <Skeleton height="100%" width="100%" />
-                  ) : generatedImage ? (
-                    <Image
-                      src={generatedImage}
-                      alt="Generated image"
-                      maxH="100%"
-                      maxW="100%"
-                      objectFit="contain"
-                    />
-                  ) : (
-                    <VStack spacing={4} p={6} textAlign="center">
-                      <MoonIcon boxSize={12} color="gray.500" />
-                      <Text color="gray.400" fontWeight="medium">
-                        Your generated image will appear here
+              Generate
+            </Button>
+          </Flex>
+          
+          {/* Image Display Area */}
+          <Card 
+            bg={cardBg} 
+            borderRadius="xl"
+            boxShadow="xl"
+            borderWidth="1px"
+            borderColor={borderColor}
+            overflow="hidden"
+            mt={4}
+          >
+            <CardBody p={6}>
+              <Box
+                borderRadius="lg"
+                overflow="hidden"
+                bg="gray.100"
+                _dark={{ bg: "gray.700" }}
+                h={{ base: "300px", md: "400px", lg: "500px" }}
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                position="relative"
+              >
+                {/* Loading state */}
+                {loading && (
+                  <VStack spacing={4}>
+                    <Skeleton height="100%" width="100%" startColor="purple.100" endColor="blue.200" />
+                    <Text color="purple.500" fontWeight="medium">
+                      Creating your masterpiece...
+                    </Text>
+                  </VStack>
+                )}
+                
+                {/* Generated image state */}
+                {!loading && generatedImage && (
+                  <Image
+                    src={generatedImage}
+                    alt="Generated image"
+                    maxH="100%"
+                    maxW="100%"
+                    objectFit="contain"
+                    borderRadius="md"
+                  />
+                )}
+                
+                {/* Empty state */}
+                {!loading && !generatedImage && (
+                  <VStack spacing={6} p={6} textAlign="center">
+                    <Icon as={MoonIcon} boxSize={16} color="purple.300" />
+                    <VStack spacing={2}>
+                      <Text color="gray.600" fontWeight="medium" fontSize="lg" _dark={{ color: "gray.300" }}>
+                        Your creation will appear here
                       </Text>
-                      <Text color="gray.500" fontSize="sm">
-                        Enter a text prompt and click "Generate Image" to create
+                      <Text color="gray.500" fontSize="sm" _dark={{ color: "gray.400" }}>
+                        Describe your vision and click "Generate"
                       </Text>
                     </VStack>
-                  )}
-                </Box>
-              </CardBody>
+                  </VStack>
+                )}
+              </Box>
               
+              {/* Action buttons (only shown when image is generated) */}
               {generatedImage && (
-                <CardFooter borderTop="1px" borderColor={borderColor} p={4}>
-                  <HStack width="100%" spacing={4}>
-                    <Button
-                      leftIcon={<DownloadIcon />}
-                      onClick={handleDownload}
-                      colorScheme="green"
-                      size="md"
-                      variant="solid"
-                    >
-                      Download
-                    </Button>
-                    <Spacer />
-                    <Button
-                      rightIcon={<ChevronRightIcon />}
-                      onClick={handleViewDetails}
-                      colorScheme="brand"
-                      size="md"
-                      variant="outline"
-                    >
-                      View Details
-                    </Button>
-                  </HStack>
-                </CardFooter>
+                <Flex justify="flex-end" mt={4} gap={3}>
+                  <Button
+                    leftIcon={<DownloadIcon />}
+                    onClick={handleDownload}
+                    colorScheme="green"
+                    size="md"
+                    borderRadius="lg"
+                    _hover={{
+                      transform: 'translateY(-1px)',
+                      boxShadow: 'md',
+                    }}
+                  >
+                    Download
+                  </Button>
+                  
+                  <Button
+                    rightIcon={<ChevronRightIcon />}
+                    onClick={handleViewDetails}
+                    colorScheme="purple"
+                    size="md"
+                    variant="outline"
+                    borderRadius="lg"
+                    _hover={{
+                      transform: 'translateY(-1px)',
+                      boxShadow: 'sm',
+                    }}
+                  >
+                    View Details
+                  </Button>
+                </Flex>
               )}
-            </Card>
-          </Box>
-        </Flex>
-      </VStack>
-    </Container>
+            </CardBody>
+          </Card>
+        </VStack>
+      </Container>
+    </Box>
   );
 };
 

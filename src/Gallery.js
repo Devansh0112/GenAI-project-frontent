@@ -12,18 +12,22 @@ import {
   Link,
   Spinner,
   Center,
-  useColorModeValue,
   Flex,
   Badge,
   Tooltip,
+  Icon,
+  Card,
+  CardBody,
 } from '@chakra-ui/react';
-import { ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
+import { 
+  ChevronLeftIcon, 
+  ChevronRightIcon, 
+  StarIcon, 
+  TimeIcon 
+} from '@chakra-ui/icons';
 import { getImages } from './api';
 
 const GalleryItem = ({ image }) => {
-  const bgColor = useColorModeValue('white', 'gray.800');
-  const borderColor = useColorModeValue('gray.200', 'gray.700');
-  
   // Convert timestamp to readable date format
   const formatDate = (timestamp) => {
     const date = new Date(timestamp);
@@ -35,15 +39,21 @@ const GalleryItem = ({ image }) => {
       as={RouterLink}
       to={`/image/${image.id}`}
       _hover={{ textDecoration: 'none' }}
+      height="100%"
     >
-      <Box
-        borderWidth="1px"
-        borderRadius="lg"
+      <Card
         overflow="hidden"
-        bg={bgColor}
-        borderColor={borderColor}
-        transition="transform 0.2s"
-        _hover={{ transform: 'scale(1.02)' }}
+        bg="white"
+        _dark={{ bg: "gray.800" }}
+        borderWidth="1px"
+        borderColor="gray.200"
+        _dark={{ borderColor: "gray.700" }}
+        borderRadius="xl"
+        transition="all 0.3s"
+        _hover={{ 
+          transform: 'translateY(-8px)', 
+          boxShadow: 'xl',
+        }}
         h="100%"
         display="flex"
         flexDirection="column"
@@ -60,29 +70,52 @@ const GalleryItem = ({ image }) => {
             objectFit="cover"
           />
         </Box>
-        <VStack p={4} align="start" spacing={1} flex="1">
-          <Text fontWeight="bold" noOfLines={2}>
-            {image.prompt}
-          </Text>
-          <Text fontSize="sm" color="gray.500">
-            {formatDate(image.created_at)}
-          </Text>
-          
-          <Flex mt={2} alignItems="center" width="100%">
-            <Tooltip label={`Seed: ${image.seed}`}>
-              <Badge colorScheme="blue" variant="subtle">
+        <CardBody p={4}>
+          <VStack align="start" spacing={2} h="100%">
+            <Text 
+              fontWeight="bold" 
+              noOfLines={2}
+              fontSize="md"
+              color="gray.800"
+              _dark={{ color: "gray.100" }}
+            >
+              {image.prompt}
+            </Text>
+            
+            <Flex width="100%" alignItems="center" mt="auto" pt={2}>
+              <Flex alignItems="center" fontSize="xs" color="gray.500">
+                <TimeIcon mr={1} />
+                <Text>{formatDate(image.created_at)}</Text>
+              </Flex>
+              
+              {image.feedback > 0 && (
+                <Badge 
+                  colorScheme="green" 
+                  ml="auto"
+                  borderRadius="full"
+                  px={2}
+                  display="flex"
+                  alignItems="center"
+                >
+                  <StarIcon mr={1} boxSize={3} />
+                  Liked
+                </Badge>
+              )}
+            </Flex>
+            
+            <Tooltip label={`Seed: ${image.seed}`} placement="top">
+              <Badge 
+                colorScheme="purple" 
+                variant="subtle"
+                borderRadius="full"
+                px={2}
+              >
                 #{image.id}
               </Badge>
             </Tooltip>
-            
-            {image.feedback > 0 && (
-              <Badge colorScheme="green" ml="auto">
-                Liked
-              </Badge>
-            )}
-          </Flex>
-        </VStack>
-      </Box>
+          </VStack>
+        </CardBody>
+      </Card>
     </Link>
   );
 };
@@ -131,61 +164,133 @@ const Gallery = () => {
   };
   
   return (
-    <Container maxW="container.xl" py={8}>
-      <VStack spacing={8} align="stretch">
-        <Heading as="h1" size="xl" textAlign="center">
-          Image Gallery
-        </Heading>
-        
-        {loading && page === 0 ? (
-          <Center py={12}>
-            <Spinner size="xl" />
-          </Center>
-        ) : images.length === 0 ? (
-          <Center py={12}>
-            <VStack spacing={4}>
-              <Text fontSize="xl">No images found</Text>
-              <Button as={RouterLink} to="/" colorScheme="blue">
-                Create your first image
-              </Button>
-            </VStack>
-          </Center>
-        ) : (
-          <>
-            <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing={6}>
-              {images.map((image) => (
-                <GalleryItem key={image.id} image={image} />
-              ))}
-            </SimpleGrid>
-            
-            {(loading && page > 0) && (
-              <Center py={4}>
-                <Spinner />
-              </Center>
-            )}
-            
-            <Flex justifyContent="center" mt={6}>
-              <Button
-                leftIcon={<ChevronLeftIcon />}
-                onClick={handlePrevPage}
-                isDisabled={page === 0}
-                mr={4}
+    <Box 
+      bgGradient="linear(to-br, purple.50, blue.50)"
+      _dark={{ bgGradient: "linear(to-br, gray.900, gray.800)" }}
+      minH="100vh"
+      py={8}
+      px={4}
+    >
+      <Container maxW="container.lg">
+        <VStack spacing={8} align="stretch">
+          <Box textAlign="center" mb={4}>
+            <Heading 
+              as="h1" 
+              size="xl" 
+              mb={3}
+              bgGradient="linear(to-r, purple.600, blue.500)"
+              _dark={{ bgGradient: "linear(to-r, purple.300, blue.200)" }}
+              bgClip="text"
+              fontWeight="extrabold"
+              letterSpacing="tight"
+            >
+              Your Creations
+            </Heading>
+            <Text fontSize="lg" color="gray.600" _dark={{ color: "gray.300" }}>
+              Browse your AI-generated gallery of imagination
+            </Text>
+          </Box>
+          
+          {loading && page === 0 ? (
+            <Center py={20}>
+              <VStack spacing={4}>
+                <Spinner 
+                  size="xl" 
+                  thickness="4px"
+                  speed="0.7s"
+                  color="purple.500"
+                />
+                <Text color="purple.500" fontWeight="medium">
+                  Loading your gallery...
+                </Text>
+              </VStack>
+            </Center>
+          ) : images.length === 0 ? (
+            <Center py={20}>
+              <VStack spacing={6}>
+                <Icon as={StarIcon} boxSize={16} color="purple.300" />
+                <Text fontSize="xl" fontWeight="medium" color="gray.600" _dark={{ color: "gray.300" }}>
+                  No images found in your gallery
+                </Text>
+                <Button 
+                  as={RouterLink} 
+                  to="/" 
+                  colorScheme="purple"
+                  size="lg"
+                  borderRadius="lg"
+                  boxShadow="md"
+                  _hover={{
+                    transform: 'translateY(-2px)',
+                    boxShadow: 'lg',
+                  }}
+                  transition="all 0.2s"
+                >
+                  Create your first image
+                </Button>
+              </VStack>
+            </Center>
+          ) : (
+            <>
+              <SimpleGrid 
+                columns={{ base: 1, sm: 2, md: 3, lg: 4 }} 
+                spacing={6}
+                mt={4}
               >
-                Previous
-              </Button>
-              <Button
-                rightIcon={<ChevronRightIcon />}
-                onClick={handleNextPage}
-                isDisabled={!hasMore}
-                isLoading={loading && page > 0}
-              >
-                Next
-              </Button>
-            </Flex>
-          </>
-        )}
-      </VStack>
-    </Container>
+                {images.map((image) => (
+                  <GalleryItem key={image.id} image={image} />
+                ))}
+              </SimpleGrid>
+              
+              {(loading && page > 0) && (
+                <Center py={6}>
+                  <Spinner 
+                    color="purple.500"
+                    thickness="3px"
+                  />
+                </Center>
+              )}
+              
+              <Flex justifyContent="center" mt={8} mb={4}>
+                <Button
+                  leftIcon={<ChevronLeftIcon />}
+                  onClick={handlePrevPage}
+                  isDisabled={page === 0}
+                  mr={4}
+                  colorScheme="purple"
+                  variant="outline"
+                  size="md"
+                  borderRadius="lg"
+                  _hover={{
+                    transform: 'translateY(-1px)',
+                    boxShadow: 'sm',
+                  }}
+                  transition="all 0.2s"
+                >
+                  Previous
+                </Button>
+                <Button
+                  rightIcon={<ChevronRightIcon />}
+                  onClick={handleNextPage}
+                  isDisabled={!hasMore}
+                  isLoading={loading && page > 0}
+                  colorScheme="purple"
+                  size="md"
+                  borderRadius="lg"
+                  boxShadow="md"
+                  _hover={{
+                    transform: 'translateY(-1px)',
+                    boxShadow: 'lg',
+                  }}
+                  transition="all 0.2s"
+                >
+                  Next
+                </Button>
+              </Flex>
+            </>
+          )}
+        </VStack>
+      </Container>
+    </Box>
   );
 };
 
